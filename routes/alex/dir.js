@@ -1,6 +1,7 @@
 /* jshint esversion:6 */
 
 fs = require('fs');
+var fdata = require('./filedata.js');
 
 var exports = module.exports = {};
 
@@ -12,7 +13,7 @@ exports.getDir = function(root, path, cb) {
             var fa = [],
                 count = 0;
             for (i = 0; i < files.length; i++) {
-                fa[i] = new FileData(dir, files[i]);
+                fa[i] = new fdata(dir, files[i]);
                 count++;
             }
             cb({
@@ -25,15 +26,4 @@ exports.getDir = function(root, path, cb) {
             });
         }
     });
-};
-
-FileData = function(dir, name) {
-
-    this.name = name;
-    this.fullpath = dir + '/' + name;
-    stats = fs.statSync(this.fullpath)
-
-    this.type = stats.isFile() ? 'f' : 'd';
-    this.size = stats.size;
-
 };
