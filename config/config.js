@@ -11,7 +11,7 @@ module.exports = {
         'database': 'alex'
     }],
     'fs':{
-        'root':'./files'
+        'root':'files'
     }
 
 };

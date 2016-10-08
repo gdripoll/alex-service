@@ -9,6 +9,7 @@ var bodyParser = require('body-parser');
 // config
 //
 var config = require('./config/config.js'); // Config
+config.fs.root = path.join(__dirname,config.fs.root);
 
 //
 // routes
