@@ -1,30 +1,32 @@
 /* jshint esversion:6 */
 
-fs = require('fs');
-var file = require('./file.js');
+const fs = require('fs'),
+    path = require('path'),
+    file = require('./file.js');
 
 var exports = module.exports = {};
 
-exports.getDir = function(root, path, cb) {
-	var dir = root + '/' + path;
-	console.log(dir);
-	fs.readdir(dir, function(err, files) {
-		if (err) cb(err);
-		else {
-			var fa = [],
-				count = 0;
-			for (i = 0; i < files.length; i++) {
-				fa[i] = new file(dir, files[i]);
-				count++;
-			}
-			cb({
-				'name': 'eldir',
-				'root': root,
-				'path': path,
-				'fullpath': root + '/' + path,
-				'file_count': count,
-				'files': fa
-			});
-		}
-	});
+exports.getDir = function(root, filepath, cb) {
+    var dir = path.join(root, filepath);
+    console.log(dir);
+    fs.readdir(dir, function(err, files) {
+        if (err) cb(err);
+        else {
+            var fa = [],
+                count = 0;
+                console.log("encontre " +files.length+" archivos.");
+            for (i = 0; i < files.length; i++) {
+                fa[i] = new file(root, filepath, files[i]);
+                count++;
+            }
+            cb({
+                'name': 'eldir',
+                'root': root,
+                'path': filepath,
+                'fullpath': root + '/' + path,
+                'file_count': count,
+                'files': fa
+            });
+        }
+    });
 };
