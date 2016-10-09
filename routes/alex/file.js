@@ -21,16 +21,13 @@ var exports = module.exports = function(root, dir, name) {
     //
     // refresh
     //
-    this.refresh = function(root, dir, name) {
-
+    this.refresh = function(root=this.root, dir=this.dir, name=this.name) {
         this.root = root;
         this.dir = dir;
         this.name = name;
-
-        console.log('[REFRESH] root:' + root + ' dir:' + dir + ' name:' + name);
-
-        this.fullpath = path.join(root, dir, name);
-        this.linkpath = encodeURIComponent(path.join(dir, name));
+        // console.log('[REFRESH] root:' + this.root + ' dir:' + this.dir + ' name:' + this.name);
+        this.fullpath = path.join(this.root, this.dir, this.name);
+        this.linkpath = encodeURIComponent(path.join(this.dir, this.name));
 
         this.exists = fs.existsSync(this.fullpath);
         if (this.exists) {
@@ -95,7 +92,8 @@ var exports = module.exports = function(root, dir, name) {
         });
         fstream.write('Hello world!\n');
         fstream.end();
-        this.refresh(this.root, this.dir, this.name);
+        // this.refresh(this.root, this.dir, this.name);
+        this.refresh();
         console.log('[TOU] ' + this.fullpath);
         cb(this);
     };
@@ -116,7 +114,7 @@ var exports = module.exports = function(root, dir, name) {
         if (this.type == 'f') {
             fs.unlink(this.fullpath, (err) => {
                 if (err) return console.error(err);
-                this.refresh(this.root, this.dir, this.name);
+                this.refresh();
                 console.log('[DEL] ' + this.fullpath);
                 cb(this);
             });
