@@ -3,6 +3,8 @@
 var express = require('express'),
     router = express.Router();
 
+
+
 // -----------------------------------------------------------------------------
 // middleware that is specific to this router
 router.use(function timeLog(req, res, next) {
@@ -50,7 +52,7 @@ router.get('/get/*', function(req, res) {
     var fileClass = require('./alex/file');
 
     var file = new fileClass(req.app.get('config').fs.root, req.params[0]);
-    console.log('[[file]]'+file);
+    console.log('[[file]]' + file);
     if (file.exists) {
         if (file.type == 'f') {
             res.sendFile(file.fullpath, function(err) {
@@ -78,14 +80,14 @@ router.get('/ren/:from/:to', function(req, res) {
         dir = req.app.get('config').fs.root,
         file = new fileClass(dir, decodeURIComponent(req.params.from));
 
-    file.rename( decodeURIComponent(req.params.to), (f) => {
+    file.rename(decodeURIComponent(req.params.to), (f) => {
         res.status(200).send(f);
     });
 });
 router.get('/touch/:file', function(req, res) {
-    var fileClass = require('./alex/file'),
+    var File = require('./alex/file'),
         dir = req.app.get('config').fs.root,
-        file = new fileClass(dir, decodeURIComponent(req.params.file));
+        file = new File(dir, decodeURIComponent(req.params.file));
 
     file.touch((f) => {
         res.status(200).send(f);
@@ -96,7 +98,7 @@ router.get('/rm/:file', function(req, res) {
         dir = req.app.get('config').fs.root,
         file = new fileClass(dir, decodeURIComponent(req.params.file));
 
-    file.delete( (f) => {
+    file.delete((f) => {
         res.status(200).send(f);
     });
 });

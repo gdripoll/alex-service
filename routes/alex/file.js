@@ -9,19 +9,29 @@ const TITLE = 1;
 const LANG = 2;
 const EXT = 3;
 
+class File {
 
-var exports = module.exports = function(root, dir, name) {
+    constructor(root, dir, name) {
 
-    this.dir = "";
-    this.name = "";
-    this.type = "";
-    this.size = "";
-    this.meta = "";
+        this.dir = "";
+        this.name = "";
+        this.type = "";
+        this.size = "";
+        this.meta = "";
+
+        if (typeof(name) == 'undefined') {
+            name = path.basename(dir);
+            dir = path.dirname(dir);
+        }
+        this.refresh(root, dir, name);
+
+    }
+
 
     //
     // refresh
     //
-    this.refresh = function(root=this.root, dir=this.dir, name=this.name) {
+    refresh(root = this.root, dir = this.dir, name = this.name) {
         this.root = root;
         this.dir = dir;
         this.name = name;
@@ -35,10 +45,10 @@ var exports = module.exports = function(root, dir, name) {
             this.getMeta(); // gets metadata
         }
 
-    };
-    this.getMeta = function() {
+    }
+    getMeta() {
         if (this.type == 'f') {
-            var aName = name.split('.'),
+            var aName = this.name.split('.'),
                 meta = {},
                 errors = [];
 
@@ -72,18 +82,18 @@ var exports = module.exports = function(root, dir, name) {
             // TODO meta de directorio
 
         }
-    };
-    this.getStats = function(fullpath) {
+    }
+    getStats(fullpath) {
         var stats = fs.statSync(fullpath);
         this.type = stats.isFile() ? 'f' : 'd';
         this.size = stats.size;
-    };
+    }
 
     //
     // operaciones
     //
-    this.touch = function(cb) {
-        fstream = fs.createWriteStream(this.fullpath, {
+    touch(cb) {
+        var fstream = fs.createWriteStream(this.fullpath, {
             flags: 'w',
             defaultEncoding: 'utf8',
             fd: null,
@@ -94,43 +104,35 @@ var exports = module.exports = function(root, dir, name) {
         fstream.end();
         // this.refresh(this.root, this.dir, this.name);
         this.refresh();
-        console.log('[TOU] ' + this.fullpath);
+        console.log(`[TOU] ${this.fullpath}`);
         cb(this);
-    };
-    this.rename = function(newName, cb) {
+    }
+    rename(newName, cb) {
         if (this.type == 'f') {
             var from = this.fullpath,
                 to = path.join(this.root, newName);
             fs.rename(from, to, (err) => {
                 this.refresh(this.root, path.dirname(newName), path.basename(newName));
-                console.log('[REN] >> ' + this.fullpath);
+                console.log(`[REN] >> ${this.fullpath}`);
                 cb(this);
             });
         } else {
             return new Error("Not implemented");
         }
-    };
-    this.delete = function(cb) {
+    }
+    delete(cb) {
         if (this.type == 'f') {
             fs.unlink(this.fullpath, (err) => {
                 if (err) return console.error(err);
                 this.refresh();
-                console.log('[DEL] ' + this.fullpath);
+                console.log(`[DEL] ${this.fullpath}`);
                 cb(this);
             });
         } else {
             return new Error("Not implemented");
         }
-    };
-
-    //
-    // init
-    //
-
-    if (typeof(name) == 'undefined') {
-        name = path.basename(dir);
-        dir = path.dirname(dir);
     }
-    this.refresh(root, dir, name);
 
-};
+}
+
+var exports = module.exports = File;
