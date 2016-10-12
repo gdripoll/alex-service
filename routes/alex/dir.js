@@ -6,15 +6,22 @@ const fs = require('fs'),
 
 var exports = module.exports = {};
 
+
+/**
+ * exports - lists a directory
+ *
+ * @param  {type} root     description
+ * @param  {type} filepath description
+ * @param  {type} cb       description
+ * @return {type}          description
+ */
 exports.getDir = function(root, filepath, cb) {
     var dir = path.join(root, filepath);
-    console.log(dir);
     fs.readdir(dir, function(err, files) {
         if (err) cb(err);
         else {
             var fa = [],
                 count = 0;
-                console.log("encontre " +files.length+" archivos.");
             for (i = 0; i < files.length; i++) {
                 fa[i] = new file(root, filepath, files[i]);
                 count++;
@@ -23,7 +30,7 @@ exports.getDir = function(root, filepath, cb) {
                 'name': 'eldir',
                 'root': root,
                 'path': filepath,
-                'fullpath': root + '/' + path,
+                'fullpath': dir,
                 'file_count': count,
                 'files': fa
             });

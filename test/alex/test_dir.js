@@ -1,3 +1,5 @@
+/* jshint esversion:6 */
+
 var config = require('../../config/config');
 var dir = require('../../routes/alex/dir.js');
 var assert = require('assert');
@@ -10,10 +12,10 @@ describe("Sys/routes/alex", function() {
 
 		it("Should return propper root|path|fullpath", function(done) {
 			var res = dir.getDir(root_dir, path_dir, function(files) {
-				assert.notEqual(files, null, "returns null");
+				assert.notEqual(files, null, `returns null ${res}`);
 				assert.equal(files.root, root_dir, "fails root dir -- " + root_dir);
 				assert.equal(files.path, path_dir, "failt path dir -- " + path_dir + " | " + files.path);
-				assert.equal(files.fullpath, root_dir + '/' + path_dir);
+				assert.equal(files.fullpath, root_dir + '/' + path_dir, "!!! "+files.fullpath);
 				done();
 			});
 		});
