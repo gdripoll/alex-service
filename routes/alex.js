@@ -51,16 +51,17 @@ router.get('/config', function(req, res) {
 // -----------------------------------------------------------------------------
 // dir management
 router.get(['/list/?', '/list/*'], function(req, res) {
-    var adir = require('./alex/dir');
-    var dir = req.app.get('config').fs.root;
+    var Dir = require('./alex/dir');
+    var dir = new Dir(req.app.get('config').fs.root);
     var path = req.params[0] ? req.params[0] : "";
-    var files = adir.getDir(
-        dir, path,
+    dir.getDir(
+        path,
         function(files) {
             console.log(':: LIST : ' + req.params[0]);
             res.send(files);
         }
     );
+
 });
 router.get('/get/*', function(req, res) {
     var fileClass = require('./alex/file');
