@@ -29,125 +29,197 @@
             <pre class="prettyprint source linenums"><code>/* jshint esversion:6 */
 
 var express = require('express'),
-    router = express.Router();
-
-/** @module alex */
-
-// -----------------------------------------------------------------------------
-// middleware that is specific to this router
-router.use(function timeLog(req, res, next) {
-    console.log('Time: ', Date.now());
-    next();
-});
-
-// -----------------------------------------------------------------------------
+    router = express.Router(),
+    Dir = require('./alex/dir'),
+    File = require('./alex/file');
 
 /**
- * router - Alex default message
- * @memberof alex
- * @function
- * @name root
+ * Alexandria
  */
-router.get('/', function(req, res) {
-    res.render('alex/index', {
-        title: 'Alexandria Server'
-    });
-});
+class Alex {
 
+    /**
+     * constructor - description
+     *
+     * @return {type}  description
+     */
+    constructor() {
+        this.router = express.Router();
 
-/**
- * router - About us
- * @memberof alex
- * @function
- * @name about
- */
-router.get('/about', function(req, res) {
-    res.send({
-        'title': 'Alexandria list',
-        'apis': {
-            '/': 'Wellcome screen',
-            '/about': 'An about screen',
-            '/list/:path': 'Lists a path',
-            '/get/:path': 'downloads a file'
-        }
-    });
-});
-router.get('/config', function(req, res) {
-    res.send(req.app.get('config'));
-});
+    }
 
-// -----------------------------------------------------------------------------
-// dir management
-router.get(['/list/?', '/list/*'], function(req, res) {
-    var adir = require('./alex/dir');
-    var dir = req.app.get('config').fs.root;
-    var path = req.params[0] ? req.params[0] : "";
-    var files = adir.getDir(
-        dir, path,
-        function(files) {
-            console.log(':: LIST : ' + req.params[0]);
-            res.send(files);
-        }
-    );
-});
-router.get('/get/*', function(req, res) {
-    var fileClass = require('./alex/file');
+    /**
+     * routes - description
+     *
+     * @return {type}  description
+     */
+    routes() {
+        this.router
+            .use(this.logger)
+            .get('/', this.home)
+            .get('/about', this.about)
+            .get('/config', this.config)
+            .get(['/list/?', '/list/*'], this.list)
+            .get('/get/*', this.get)
+            .get('/ren/:from/:to', this.rename)
+            .get('/touch/:file', this.touch)
+            .get('/rm/:file', this.delete);
+        return this.router;
+    }
 
-    var file = new fileClass(req.app.get('config').fs.root, req.params[0]);
-    console.log('[[file]]' + file);
-    if (file.exists) {
-        if (file.type == 'f') {
-            res.sendFile(file.fullpath, function(err) {
-                if (err) {
-                    console.log('ERROR: ' + err);
-                    res.status(err.status).end();
-                } else {
-                    console.log('Sent:', file.fileName);
-                }
-            });
-        } else {
-            res.status(404).send("Not a file.");
-        }
-    } else {
-        res.status(404).send({
-            file
+    /**
+     * logger - description
+     *
+     * @param  {type} req  description
+     * @param  {type} res  description
+     * @param  {type} next description
+     * @return {type}      description
+     */
+    logger(req, res, next) {
+        // console.log('Time: ', Date.now());
+        next();
+    }
+
+    /**
+     * home - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    home(req, res) {
+        res.render('alex/index', {
+            title: 'Alexandria Server'
         });
     }
-});
 
-// -----------------------------------------------------------------------------
-// file management
-router.get('/ren/:from/:to', function(req, res) {
-    var fileClass = require('./alex/file'),
-        dir = req.app.get('config').fs.root,
-        file = new fileClass(dir, decodeURIComponent(req.params.from));
+    /**
+     * about - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    about(req, res) {
+        res.send({
+            'title': 'Alexandria list',
+            'apis': {
+                '/': 'Wellcome screen',
+                '/about': 'An about screen',
+                '/list/:path': 'Lists a path',
+                '/get/:path': 'downloads a file'
+            }
+        });
+    }
 
-    file.rename(decodeURIComponent(req.params.to), (f) => {
-        res.status(200).send(f);
-    });
-});
-router.get('/touch/:file', function(req, res) {
-    var File = require('./alex/file'),
-        dir = req.app.get('config').fs.root,
-        file = new File(dir, decodeURIComponent(req.params.file));
+    /**
+     * config - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    config(req, res) {
+        res.send(req.app.get('config'));
+    }
 
-    file.touch((f) => {
-        res.status(200).send(f);
-    });
-});
-router.get('/rm/:file', function(req, res) {
-    var fileClass = require('./alex/file'),
-        dir = req.app.get('config').fs.root,
-        file = new fileClass(dir, decodeURIComponent(req.params.file));
+    /**
+     * list - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    list(req, res) {
+        var dir = new Dir(req.app.get('config').fs.root);
+        var path = req.params[0] ? req.params[0] : "";
+        dir.getDir(path, (files) => {
+            res.send(files);
+        });
+    }
 
-    file.delete((f) => {
-        res.status(200).send(f);
-    });
-});
+    /**
+     * get - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    get(req, res) {
+        var file = new File(req.app.get('config').fs.root, req.params[0]);
+        console.log('[[file]]' + file);
+        if (file.exists) {
+            if (file.type == 'f') {
+                res.sendFile(file.fullpath, function(err) {
+                    if (err) {
+                        console.log('ERROR: ' + err);
+                        res.status(err.status).end();
+                    } else {
+                        console.log('Sent:', file.fileName);
+                    }
+                });
+            } else {
+                res.status(404).send("Not a file.");
+            }
+        } else {
+            res.status(404).send({
+                file
+            });
+        }
+    }
+
+    /**
+     * rename - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    rename(req, res) {
+        var dir = req.app.get('config').fs.root,
+            file = new File(dir, decodeURIComponent(req.params.from));
+
+        file.rename(decodeURIComponent(req.params.to), (f) => {
+            res.status(200).send(f);
+        });
+    }
+
+    /**
+     * touch - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    touch(req, res) {
+        var dir = req.app.get('config').fs.root,
+            file = new File(dir, decodeURIComponent(req.params.file));
+
+        file.touch((f) => {
+            res.status(200).send(f);
+        });
+    }
+
+    /**
+     * delete - description
+     *
+     * @param  {type} req description
+     * @param  {type} res description
+     * @return {type}     description
+     */
+    delete(req, res) {
+        var dir = req.app.get('config').fs.root,
+            file = new File(dir, decodeURIComponent(req.params.file));
+
+        file.delete((f) => {
+            res.status(200).send(f);
+        });
+    }
+}
 
 // -----------------------------------------------------------------------------
 // Init
-module.exports = router;
+module.exports = Alex;
 </code></pre>
         </article>
     </section>
@@ -158,13 +230,13 @@ module.exports = router;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-alex.html">alex</a></li></ul><h3>Classes</h3><ul><li><a href="File.html">File</a></li></ul><h3>Global</h3><ul><li><a href="global.html#getDir">getDir</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Alex.html">Alex</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Wed Oct 12 2016 14:56:43 GMT-0300 (ART)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.2</a> on Wed Oct 12 2016 21:10:25 GMT-0300 (ART)
 </footer>
 
 <script> prettyPrint(); </script>
